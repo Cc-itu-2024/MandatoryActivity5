@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package gRPC;
+
+option go_package = "/gRPC";
+
+import "google/protobuf/timestamp.proto";
+
+message Amount {
+    int32 amount = 1;
+}
+
+message Outcome {
+    int32 outcome = 1;
+}
+
+message Ack {
+    string message = 1;
+}
+
+message Void {}
+
+
+service Auction {
+    rpc Bid(Amount) returns (Ack);
+
+	rpc Result(Void) returns (Outcome);
+}
