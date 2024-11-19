@@ -20,9 +20,14 @@ message Ack {
 
 message Void {}
 
+message Broadcast {
+    
+}
+
 
 service Auction {
     rpc Bid(Amount) returns (Ack);
 
 	rpc Result(Void) returns (Outcome);
 }
+
