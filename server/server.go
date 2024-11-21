@@ -2,35 +2,49 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
-	"os"
 	"net"
+	"os"
 	"sync"
+	"time"
 
 	pb "auction/auction"
 
 	"google.golang.org/grpc"
 )
 
-var server *Server
-var ports = []string(":5050", ":5051", ":5052", ":5053")
+var ports = []string{":5050", ":5051", ":5052",  ":5053"}
 var Auctionactive bool
 
 type AuctionServer struct {
 	pb.UnimplementedAuctionServer
-	client pb.AuctionClient
-	serverNodes map[int32]
-	mu sync.Mutex
-	isLeader bool	
+	serverNodes   map[int32]pb.AuctionClient 
+	mu            sync.Mutex                 
+	isLeader      bool                       
+	nodeID        int32                      
+	state         AuctionState               
+	auctionActive bool                       
+	bidTimeout    time.Duration              
+	bidEndTime    time.Time                  
+
 }
 
-type Node struct {
-
+type AuctionState struct {
+	HighestBid    int32  
+	HighestBidder string 
 }
 
-func NewAuctionServer() * AuctionServer{
 
+func NewAuctionServer(nodeID int32, isLeader bool, bidTimeout time.Duration) *AuctionServer {
+	return &AuctionServer{
+		serverNodes:   make(map[int32]pb.AuctionClient),
+		isLeader:      isLeader,
+		nodeID:        nodeID,
+		state:         AuctionState{HighestBid: 0, HighestBidder: ""},
+		auctionActive: true,
+		bidTimeout:    bidTimeout,
+		bidEndTime:    time.Now().Add(bidTimeout),
+	}
 }
 
 func main() {
@@ -42,44 +56,123 @@ func main() {
 
 	log.SetOutput(logFile)
 
-	lis, err := net.Listen("tcp", ":5051")
+	// Start servers on predefined ports
+	for i, port := range ports {
+		isLeader := (i == 0) // First server is the initial leader
+		go startServer(port, int32(i), isLeader, 100*time.Second)
+	}
+
+	// Block forever
+	select {}
+}
+
+
+
+func (s *AuctionServer) runAuction() {
+	for {
+		time.Sleep(time.Second) // Check periodically
+
+		s.mu.Lock()
+		if time.Now().After(s.bidEndTime) && s.auctionActive {
+			s.auctionActive = false
+			log.Printf("Auction ended. Winner: %s with bid %d", s.state.HighestBidder, s.state.HighestBid)
+		}
+		s.mu.Unlock()
+
+		// Exit the loop if the auction is over
+		if !s.auctionActive {
+			break
+		}
+	}
+}
+
+func startServer(port string, nodeID int32, isLeader bool, bidTimeout time.Duration) {
+	lis, err := net.Listen("tcp", port)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	server = new Server(ports[0])
-
+	// Create and register the AuctionServer
+	server := NewAuctionServer(nodeID, isLeader, bidTimeout)
 	grpcServer := grpc.NewServer()
 	pb.RegisterAuctionServer(grpcServer, server)
 
-	log.Printf("Server listening on %v", lis.Addr())
+	go server.runAuction() // Start the auction timer
+
+	log.Printf("Server %d listening on %v", nodeID, lis.Addr())
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
 }
 
 
-func runAuction(){
 
+func (s *AuctionServer) Bid(ctx context.Context, amount *pb.Amount) (*pb.Ack, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
+	if !s.auctionActive || time.Now().After(s.bidEndTime) {
+		return &pb.Ack{Message: "auction over"}, nil
+	}
 
+	if amount.Amount <= s.state.HighestBid {
+		return &pb.Ack{Message: "fail"}, nil
+	}
+
+	if s.isLeader {
+		success := s.propagateBid(amount.Amount)
+		if !success {
+			return &pb.Ack{Message: "exception"}, nil
+		}
+	}
+
+	s.state.HighestBid = amount.Amount
+	s.state.HighestBidder = "Bidder_ID" 
+	return &pb.Ack{Message: "success"}, nil
 }
 
-func startServer(){
-
-
-}
-
-
-func bid(){
-
-}
 
 func ack(){
 
 }
 
 func outcome(){
+
+}
+
+func (s *AuctionServer) Result(ctx context.Context, void *pb.Void) (*pb.Outcome, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.auctionActive && time.Now().Before(s.bidEndTime) {
+		return &pb.Outcome{
+			HighestBid:    s.state.HighestBid,
+			HighestBidder: "in progress",
+		}, nil
+	}
+
+	// Auction is over, return final outcome
+	return &pb.Outcome{
+		HighestBid:    s.state.HighestBid,
+		HighestBidder: s.state.HighestBidder,
+	}, nil
+}
+
+func (s *AuctionServer) propagateBid(amount int32) bool {
+	ackCount := 0
+	for _, client := range s.serverNodes {
+		ack, err := client.Bid(context.Background(), &pb.Amount{Amount: amount})
+		if err == nil && ack.Message == "success" {
+			ackCount++
+		}
+	}
+
+	
+	return ackCount >= len(s.serverNodes)/2
+}
+
+func (s *AuctionServer) electNewLeader(){
+
 
 }
 
