@@ -18,3 +18,9 @@ func main(){
 }
 
 
+func connectToServer(){
+
+	
+}
+
+

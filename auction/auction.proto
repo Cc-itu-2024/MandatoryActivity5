@@ -11,7 +11,8 @@ message Amount {
 }
 
 message Outcome {
-    int32 outcome = 1;
+    int32 highestBid = 1;
+    string highestBidder = 2;
 }
 
 message Ack {
@@ -19,10 +20,6 @@ message Ack {
 }
 
 message Void {}
-
-message Broadcast {
-    
-}
 
 
 service Auction {
