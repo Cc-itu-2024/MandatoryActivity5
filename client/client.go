@@ -18,7 +18,7 @@ import (
 
 var (
 	nodeId    = flag.Int("nodeId", 0, "The nodeId")
-	maxNodeId = flag.Int("maxNodeId", -1, "The maximum number of nodes")
+	maxNode = flag.Int("maxNode", -1, "The maximum number of nodes")
 	basePort  = flag.Int("basePort", 50000, "The base port number. The server will listen on this port + nodeId")
 	bidderId  = flag.Int("bidderId", 0, "The bidder id")
 )
@@ -27,7 +27,7 @@ func main() {
 
 	flag.Parse()
 
-	if *maxNodeId == -1 {
+	if *maxNode == -1 {
 		log.Fatalf("maxNodeId is required")
 	}
 

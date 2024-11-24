@@ -16,7 +16,7 @@ import (
 
 var (
 	nodeId    = flag.Int("nodeId", -1, "The nodeId")
-	maxNodeId = flag.Int("maxNodeId", -1, "The maximum number of nodes")
+	maxNode = flag.Int("maxNode", -1, "The maximum number of nodes")
 	basePort  = flag.Int("basePort", 50000, "The base port number. The server will listen on this port + nodeId")
 	min       = flag.Int("min", 1, "The durition of the auction in minutes")
 )
@@ -128,7 +128,7 @@ func (s *server) getLeaderAuctionClient() (pb.AuctionClient, *grpc.ClientConn, e
 func (s *server) startElection() {
 	log.Printf("Node %d: Starting election", s.nodeId)
 
-	for n := s.nodeId + 1; n < *maxNodeId; n++ {
+	for n := s.nodeId + 1; n < *maxNode; n++ {
 		node := fmt.Sprintf("localhost:%d", *basePort+n)
 		log.Printf("Node %d: Try to contact NodeId: %d on address: %s", s.nodeId, n, node)
 
@@ -297,7 +297,7 @@ func main() {
 		log.Fatalf("nodeId must be specified")
 	}
 
-	if *nodeId >= *maxNodeId {
+	if *nodeId >= *maxNode {
 		log.Fatalf("nodeId must be lower than maxNodeId")
 	}
 
