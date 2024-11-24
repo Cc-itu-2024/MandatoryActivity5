@@ -18,7 +18,7 @@ import (
 
 var (
 	nodeId    = flag.Int("nodeId", 0, "The nodeId")
-	maxNode = flag.Int("maxNode", -1, "The maximum number of nodes")
+	//maxNode = flag.Int("maxNode", -1, "The maximum number of nodes")
 	basePort  = flag.Int("basePort", 50000, "The base port number. The server will listen on this port + nodeId")
 	bidderId  = flag.Int("bidderId", 0, "The bidder id")
 )
@@ -27,9 +27,9 @@ func main() {
 
 	flag.Parse()
 
-	if *maxNode == -1 {
-		log.Fatalf("maxNodeId is required")
-	}
+	//if *maxNode == -1 {
+	//	log.Fatalf("maxNodeId is required")
+	//}
 
 	// Set up a connection to the server.
 	addr := fmt.Sprintf("localhost:%d", *basePort+*nodeId)

@@ -1,0 +1,78 @@
+SERVER 0
+go run server/server.go -nodeId 0 -maxNode 2
+Starting node...
+2024/11/24 19:04:51 Node listening at [::]:50000
+2024/11/24 19:05:01 Node 0: Starting election
+2024/11/24 19:05:01 Node 0: Try to contact NodeId: 1 on address: localhost:50001
+2024/11/24 19:05:01 Node 0: SendElection request to node: 1
+2024/11/24 19:05:02 Node 0: Updating leader: 1
+2024/11/24 19:05:02 Node 0: New leader is 1
+2024/11/24 19:05:02 Node 0: Received OK from node localhost:50001
+2024/11/24 19:05:02 Node 0: Updating state HighestBid: 20, HighestBidderId: 0
+2024/11/24 19:05:02 Node 0: Updated state HighestBid: 20, HighestBidderId: 0
+2024/11/24 19:05:04 Node 0: Updating state HighestBid: 30, HighestBidderId: 0
+2024/11/24 19:05:04 Node 0: Updated state HighestBid: 30, HighestBidderId: 0
+2024/11/24 19:05:47 Node 0: Could not connect to node localhost:50001
+2024/11/24 19:05:47 Node 0: Starting election
+2024/11/24 19:05:47 Node 0: Try to contact NodeId: 1 on address: localhost:50001
+2024/11/24 19:05:48 Node 0: Could not connect to node localhost:50001 // finds out leader has crashed
+2024/11/24 19:05:48 Node 0: I am the leader
+2024/11/24 19:05:48 Node 0: Announcing leader to nodes with lower id.
+2024/11/24 19:05:48 Node 0: Announced leader to all nodes
+2024/11/24 19:05:48 Node 0: New highest bid of 40 by bidder 0
+2024/11/24 19:05:48 Node 0: Broadcasting state to all nodes with lower id.
+2024/11/24 19:05:48 Node 0: Synced state to all active nodes
+2024/11/24 19:08:50 Node 0: New highest bid of 50 by bidder 0
+2024/11/24 19:08:50 Node 0: Broadcasting state to all nodes with lower id.
+2024/11/24 19:08:50 Node 0: Synced state to all active nodes
+
+
+SERVER 1:
+go run server/server.go -nodeId 1 -maxNode 2
+Starting node...
+2024/11/24 19:04:46 Node listening at [::]:50001
+2024/11/24 19:05:01 Node 1: SendElection: 0
+2024/11/24 19:05:01 Node 1: Starting election
+2024/11/24 19:05:01 Node 1: I am the leader
+2024/11/24 19:05:01 Node 1: Announcing leader to nodes with lower id.
+2024/11/24 19:05:02 Node 1: Announced leader to node localhost:50000
+2024/11/24 19:05:02 Node 1: Announced leader to all nodes
+2024/11/24 19:05:02 Node 1: New highest bid of 20 by bidder 0
+2024/11/24 19:05:02 Node 1: Broadcasting state to all nodes with lower id.
+2024/11/24 19:05:02 Node 1: Synced state to node localhost:50000
+2024/11/24 19:05:02 Node 1: Synced state to all active nodes
+2024/11/24 19:05:04 Node 1: New highest bid of 30 by bidder 0
+2024/11/24 19:05:04 Node 1: Broadcasting state to all nodes with lower id.
+2024/11/24 19:05:04 Node 1: Synced state to node localhost:50000
+2024/11/24 19:05:04 Node 1: Synced state to all active nodes
+// Node 1, leader, crashes^Csignal: interrupt
+
+
+CLIENT/BIDDER 0:
+go run client/client.go -nodeId 0           
+2024/11/24 19:04:57 Place bid:
+20
+2024/11/24 19:05:02 Response:  ACCEPTED
+2024/11/24 19:05:02 Highest bid: 20 by bidder 0
+2024/11/24 19:05:02 Place bid:
+30
+2024/11/24 19:05:04 Response:  ACCEPTED
+2024/11/24 19:05:04 Highest bid: 30 by bidder 0
+2024/11/24 19:05:04 Place bid:
+15
+2024/11/24 19:05:06 Response:  NOTACCEPTED
+2024/11/24 19:05:06 Highest bid: 30 by bidder 0
+2024/11/24 19:05:06 Place bid:
+40
+2024/11/24 19:05:48 Response:  ACCEPTED
+2024/11/24 19:05:48 Highest bid: 40 by bidder 0
+2024/11/24 19:05:48 Place bid:
+50
+2024/11/24 19:08:50 Response:  ACCEPTED
+2024/11/24 19:08:50 Highest bid: 50 by bidder 0
+2024/11/24 19:08:50 Place bid:
+60
+2024/11/24 19:10:06 Response:  ISFINISHED
+2024/11/24 19:10:06 Highest bid: 50 by bidder 0
+2024/11/24 19:10:06 Place bid:
+

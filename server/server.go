@@ -18,7 +18,7 @@ var (
 	nodeId    = flag.Int("nodeId", -1, "The nodeId")
 	maxNode = flag.Int("maxNode", -1, "The maximum number of nodes")
 	basePort  = flag.Int("basePort", 50000, "The base port number. The server will listen on this port + nodeId")
-	min       = flag.Int("min", 1, "The durition of the auction in minutes")
+	min       = flag.Int("min", 5, "The durition of the auction in minutes")
 )
 
 var AuctionOngoing = false
