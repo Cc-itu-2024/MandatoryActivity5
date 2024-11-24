@@ -1,36 +1,71 @@
+// Generate with the following from the auction folder.
+// protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative proto/auction.proto
+
 syntax = "proto3";
 
-package gRPC;
+option go_package = "auction/proto";
 
-option go_package = "/gRPC";
+package auction;
 
-import "google/protobuf/timestamp.proto";
-
-message Amount {
-    int32 amount = 1;
-}
-
-message Outcome {
-    int32 highestBid = 1;
-    string highestBidder = 2;
-}
-
-message Ack {
-    string message = 1;
-}
-
-message Void {}
-
-
+// The Auction service definition.
 service Auction {
-    rpc Bid(Amount) returns (Ack);
+  // Bidder client calls
+  rpc Bid (BidRequest) returns (BidResponse);
+  rpc Result (Empty) returns (ResultResponse);
 
-	rpc Result(Void) returns (Outcome);
-    rpc SyncAuctionState(AuctionState) returns (Ack); 
+  // Leader election calls
+  rpc SendElection (ElectionRequest) returns (ElectionResponse);
+  rpc AnnounceLeader (AnnounceLeaderRequest) returns (Empty);
+
+  // Sync state
+  rpc SyncState(SyncStateRequest) returns (Empty);
 }
 
-message AuctionState {
-    int32 highestBid = 1;
-    string highestBidder = 2;
+enum BID_STATUS {
+  NOTACCEPTED = 0;
+  ACCEPTED = 1;
+  ISFINISHED = 2;
+}
+
+message BidRequest {
+  int32 bidderId = 1;
+  int32 bid = 2;
+}
+
+message BidResponse {
+  BID_STATUS status = 1;
+  int32 bidderId = 2;
+  int32 bid = 3;
+}
+
+enum AUCTION_STATUS {
+  NOTSTARTED = 0;
+  ONGOING = 1;
+  FINISHED = 2;
+}
+
+message ResultResponse {
+  AUCTION_STATUS status = 1;
+  int32 highestBid = 2;
+  int32 bidderId = 3;
+}
+
+message Empty {}
+
+message ElectionRequest {
+  int32 nodeId = 1;
+}
+
+message ElectionResponse {
+  bool Ok = 1;
+}
+
+message AnnounceLeaderRequest {
+  int32 leaderId = 1;
+}
+
+message SyncStateRequest {
+  int32 highestBid = 1;
+  int32 highestBidderId = 2;
 }
 
