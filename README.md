@@ -1,6 +1,6 @@
 **To run servers**
 - in a new terminal run: go run server/server.go -nodeId \<nodeId\> -maxNodeId \<maxNoOfNodes\>
-- nodeId: Current node's ID
+- nodeId: Current node's ID, most likely 0 for the first node
 - maxNodeId: The maximum number of nodes expected to run
 
 **To run client**
