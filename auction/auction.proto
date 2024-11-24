@@ -26,5 +26,11 @@ service Auction {
     rpc Bid(Amount) returns (Ack);
 
 	rpc Result(Void) returns (Outcome);
+    rpc SyncAuctionState(AuctionState) returns (Ack); 
+}
+
+message AuctionState {
+    int32 highestBid = 1;
+    string highestBidder = 2;
 }
 
